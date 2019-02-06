@@ -5,9 +5,22 @@
 
 import feedparser as fd
 
-# Sources of news
-# TODO Add more
-sources = {'The Economist - World News': 'https://www.economist.com/rss'}
+# Sources of news (mainly world news, could be insterresting for anyone)
+sources = {'The Economist - World News': 'https://www.economist.com/rss',
+           'The Guardian - International':
+           'https://www.theguardian.com/international/rss',
+           'The Independant - World':
+           'http://www.independent.co.uk/news/world/rss',
+           'Washington Post - Word':
+           'http://feeds.washingtonpost.com/rss/world',
+           'Washington Post - Lifestyle':
+           'http://feeds.washingtonpost.com/rss/lifestyle',
+           'Reuters - Business News':
+           'http://feeds.reuters.com/reuters/businessNews',
+           'Reuters - Word News':
+           'http://feeds.reuters.com/Reuters/worldNews',
+           'The Telegraph': 'https://www.telegraph.co.uk/rss.xml'
+           }
 
 
 def getTitleUrl(feed):
