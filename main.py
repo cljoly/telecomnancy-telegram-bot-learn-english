@@ -13,10 +13,14 @@ Press Ctrl-C on the command line or send a signal to the process to stop the
 bot.
 """
 
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
 import logging
 from dbhelper import DBHelper 
 from random import randint
+import os
+
+import article
 
 db = DBHelper()
 
@@ -25,6 +29,39 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+
+def articleSelection(bot, update):
+    sources = article.sources
+    keyboard = [
+                [InlineKeyboardButton("🗞️ " + new_name, callback_data=id)]
+        for id, new_name in enumerate(sources.keys())
+    ]
+    keyboard.append([
+        InlineKeyboardButton("👀 List", callback_data="-2"),
+        InlineKeyboardButton("👌 All set", callback_data="-1")
+    ])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+
+
+def articleCallback(bot, update):
+    sources = article.sources
+    query = update.callback_query
+    source_number = int(query.data)
+    print(query.data)
+    t="Callback: {}".format(source_number)
+    print(t)
+    if (source_number>=0):
+        # TODO Actually subscribe
+        query.answer("You have subscribed to 🗞 {}".format(list(sources.keys())[source_number]))
+    elif source_number == -1:
+        query.edit_message_text(text="You will get your articles for lunch 🍽️. See you soon!")
+    elif source_number == -2:
+        # TODO List sources subscribed to
+        query.edit_message_text(text="List")
+    else:
+        query.edit_message_text(text="Error")
 
 
 # Define a few command handlers. These usually take the two arguments bot and
@@ -74,7 +111,7 @@ def error(bot, update, error):
 def main():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("734595784:AAGLpr67me5zDP-wObrh3NY-KIA0JIXcKvA")
+    updater = Updater("778329810:AAElGVRiP4_tZCJvAE025qZ1ySTgBOAze80")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -83,6 +120,8 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("dictAdd", dictAdd))
+    dp.add_handler(CommandHandler("select", articleSelection))
+    dp.add_handler(CallbackQueryHandler(articleCallback))
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, echo))
