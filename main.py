@@ -23,6 +23,7 @@ import os
 import article
 
 db = DBHelper()
+db.setup()
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -34,8 +35,8 @@ logger = logging.getLogger(__name__)
 def articleSelection(bot, update):
     sources = article.sources
     keyboard = [
-                [InlineKeyboardButton("🗞️ " + new_name, callback_data=id)]
-        for id, new_name in enumerate(sources.keys())
+                [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
+        for id, news_name in enumerate(sources.keys())
     ]
     keyboard.append([
         InlineKeyboardButton("👀 List", callback_data="-2"),
@@ -53,8 +54,10 @@ def articleCallback(bot, update):
     t="Callback: {}".format(source_number)
     print(t)
     if (source_number>=0):
-        # TODO Actually subscribe
-        query.answer("You have subscribed to 🗞 {}".format(list(sources.keys())[source_number]))
+        news_source_name = list(sources.keys())[source_number]
+        username = update.effective_user.username
+        db.add_subscription(username, news_source_name)
+        query.answer("You have subscribed to 🗞 {}".format(news_source_name))
     elif source_number == -1:
         query.edit_message_text(text="You will get your articles for lunch 🍽️. See you soon!")
     elif source_number == -2:
@@ -63,6 +66,20 @@ def articleCallback(bot, update):
     else:
         query.edit_message_text(text="Error")
 
+def subscriptionsList(bot, update):
+    """ List user subscription """
+    username = update.effective_user.username
+    subs = db.get_subscriptions(username)
+    sources = article.sources
+    keyboard = [
+                [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
+        for id, news_name in enumerate(subs)
+    ]
+    keyboard.append([
+        InlineKeyboardButton("👌 All set", callback_data="-1")
+    ])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please choose:', reply_markup=reply_markup)
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
@@ -121,6 +138,8 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("dictAdd", dictAdd))
     dp.add_handler(CommandHandler("select", articleSelection))
+    dp.add_handler(CommandHandler("listSub", subscriptionsList))
+    # dp.add_handler(CommandHandler("suggest", articleSuggestion))
     dp.add_handler(CallbackQueryHandler(articleCallback))
 
     # on noncommand i.e message - echo the message on Telegram
