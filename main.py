@@ -49,44 +49,62 @@ def articleSelection(bot, update):
 
 
 def articleCallback(bot, update):
+    """ Callback for all articles """
     sources = article.sources
     query = update.callback_query
     source_number = int(query.data)
     print(query.data)
     t="Callback: {}".format(source_number)
     print(t)
+    username = update.effective_user.username
     if (source_number>=0):
         news_source_name = list(sources.keys())[source_number]
-        username = update.effective_user.username
         if article.toggle_subscription(db, username, news_source_name):
             query.answer("You have subscribed to 🗞 {}".format(news_source_name))
         else:
             query.answer("You have unsubscribed from 🗞 {}".format(news_source_name))
 
-    elif source_number == -1:
+    elif source_number == -1: # All set
         query.edit_message_text(text=article_lunch)
-    elif source_number == -2:
-        query.edit_message_text(text="")
+    elif source_number == -2: # List subscription
+        query.edit_message_text(text=genSubscriptionsMessage(username))
+    elif source_number == -3: # Article read, add word
+        # TODO Call function to add words
         subscriptionsList(bot, update)
     else:
         query.edit_message_text(text="Error")
 
-def subscriptionsList(bot, update):
-    """ List user subscription """
-    username = update.effective_user.username
+def genSubscriptionsMessage(username):
     subs = db.get_subscriptions(username)
-    sources = article.sources
     msgs = ["You have subscribed to:"]
     msgs += ["🗞️ " + news_name for news_name in subs]
     msgs += [article_lunch]
-    msg = "\n".join(msgs)
+    return "\n".join(msgs)
+
+
+
+def subscriptionsList(bot, update):
+    """ List user subscription """
+    username = update.effective_user.username
+    msg = genSubscriptionsMessage(username)
+    print("subs list", msg)
     update.message.reply_text(msg)
+
+def articleSuggestion(bot, update):
+    username = update.effective_user.username
+    title, link = article.random_from_subscribed(db, username, )
+    msg = "📰 {}\n🔗 {}".format(title, link)
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✔️ Read, add words", callback_data=-3)]
+    ])
+    update.message.reply_text(msg, reply_markup=reply_markup)
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
+    update.message.reply_text('Hi, I’m your new British friend and I would love to share my favorite articles with you. Here is a couple of media I find interesting. Tell me which one you would like to subscribe to and I will send you the latest articles daily.')
+    articleSelection(bot, update)
 
 
 def help(bot, update):
@@ -139,8 +157,8 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("dictAdd", dictAdd))
     dp.add_handler(CommandHandler("select", articleSelection))
-    dp.add_handler(CommandHandler("listSub", subscriptionsList))
-    # dp.add_handler(CommandHandler("suggest", articleSuggestion))
+    dp.add_handler(CommandHandler("list", subscriptionsList))
+    dp.add_handler(CommandHandler("suggest", articleSuggestion))
     dp.add_handler(CallbackQueryHandler(articleCallback))
 
     # on noncommand i.e message - echo the message on Telegram

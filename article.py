@@ -4,6 +4,7 @@
 # Extract article from various sources
 
 import feedparser as fd
+from random import randint
 
 # Sources of news (mainly world news, could be insterresting for anyone)
 sources = {'The Economist - World News': 'https://www.economist.com/rss',
@@ -33,6 +34,14 @@ def getFeed(sourceName):
     feed_url = sources[sourceName]
     feed = fd.parse(feed_url)
     return feed
+
+def random_from_subscribed(db, user):
+    subs = db.get_subscriptions(user)
+    while True:
+        feed = getFeed(subs[randint(0, len(subs)-1)])
+        for r in getTitleUrl(feed):
+            print("Got random: ", r)
+            return r
 
 def toggle_subscription(db, user, sourceName):
     """ Subcribe or unscribe user to given news source. Return True if
