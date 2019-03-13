@@ -33,3 +33,15 @@ def getFeed(sourceName):
     feed_url = sources[sourceName]
     feed = fd.parse(feed_url)
     return feed
+
+def toggle_subscription(db, user, sourceName):
+    """ Subcribe or unscribe user to given news source. Return True if
+        subscribed, False if unscribed """
+    if not db.has_subscription(user, sourceName):
+        print("sub")
+        db.add_subscription(user, sourceName)
+        return True
+    else:
+        print("unsub")
+        db.delete_subscription(user, sourceName)
+        return False

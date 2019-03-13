@@ -31,6 +31,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+# Messages
+article_lunch="You will get your articles for lunch 🍽️. See you soon!"
 
 def articleSelection(bot, update):
     sources = article.sources
@@ -43,7 +45,7 @@ def articleSelection(bot, update):
         InlineKeyboardButton("👌 All set", callback_data="-1")
     ])
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+    update.message.reply_text('Please tap on buttons to subscribe to a news source.\nTap another time to unsubscribe.', reply_markup=reply_markup)
 
 
 def articleCallback(bot, update):
@@ -56,13 +58,16 @@ def articleCallback(bot, update):
     if (source_number>=0):
         news_source_name = list(sources.keys())[source_number]
         username = update.effective_user.username
-        db.add_subscription(username, news_source_name)
-        query.answer("You have subscribed to 🗞 {}".format(news_source_name))
+        if article.toggle_subscription(db, username, news_source_name):
+            query.answer("You have subscribed to 🗞 {}".format(news_source_name))
+        else:
+            query.answer("You have unsubscribed from 🗞 {}".format(news_source_name))
+
     elif source_number == -1:
-        query.edit_message_text(text="You will get your articles for lunch 🍽️. See you soon!")
+        query.edit_message_text(text=article_lunch)
     elif source_number == -2:
-        # TODO List sources subscribed to
-        query.edit_message_text(text="List")
+        query.edit_message_text(text="")
+        subscriptionsList(bot, update)
     else:
         query.edit_message_text(text="Error")
 
@@ -71,15 +76,11 @@ def subscriptionsList(bot, update):
     username = update.effective_user.username
     subs = db.get_subscriptions(username)
     sources = article.sources
-    keyboard = [
-                [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
-        for id, news_name in enumerate(subs)
-    ]
-    keyboard.append([
-        InlineKeyboardButton("👌 All set", callback_data="-1")
-    ])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
+    msgs = ["You have subscribed to:"]
+    msgs += ["🗞️ " + news_name for news_name in subs]
+    msgs += [article_lunch]
+    msg = "\n".join(msgs)
+    update.message.reply_text(msg)
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
