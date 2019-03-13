@@ -70,7 +70,8 @@ def articleCallback(bot, update):
         query.edit_message_text(text=genSubscriptionsMessage(username))
     elif source_number == -3: # Article read, add word
         # TODO Call function to add words
-        subscriptionsList(bot, update)
+        #reset_dict_flag()
+        dictAdd(bot, update)
     else:
         query.edit_message_text(text="Error")
 
