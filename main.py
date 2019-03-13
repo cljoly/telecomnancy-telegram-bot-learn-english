@@ -31,6 +31,9 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 logger = logging.getLogger(__name__)
 
+# Messages
+article_lunch="You will get your articles for lunch 🍽️. See you soon!"
+
 # Flags
 requesting_english = False
 testing_english = False
@@ -55,18 +58,82 @@ def reset_dict_flags():
     testing_french = False
     french_value = ''
 
+def articleSelection(bot, update):
+    sources = article.sources
+    keyboard = [
+                [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
+        for id, news_name in enumerate(sources.keys())
+    ]
+    keyboard.append([
+        InlineKeyboardButton("👀 List", callback_data="-2"),
+        InlineKeyboardButton("👌 All set", callback_data="-1")
+    ])
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Please tap on buttons to subscribe to a news source.\nTap another time to unsubscribe.', reply_markup=reply_markup)
+
+
+def articleCallback(bot, update):
+    """ Callback for all articles """
+    sources = article.sources
+    query = update.callback_query
+    source_number = int(query.data)
+    print(query.data)
+    t="Callback: {}".format(source_number)
+    print(t)
+    username = update.effective_user.username
+    if (source_number>=0):
+        news_source_name = list(sources.keys())[source_number]
+        if article.toggle_subscription(db, username, news_source_name):
+            query.answer("You have subscribed to 🗞 {}".format(news_source_name))
+        else:
+            query.answer("You have unsubscribed from 🗞 {}".format(news_source_name))
+
+    elif source_number == -1: # All set
+        query.edit_message_text(text=article_lunch)
+    elif source_number == -2: # List subscription
+        query.edit_message_text(text=genSubscriptionsMessage(username))
+    elif source_number == -3: # Article read, add word
+        # TODO Call function to add words
+        #reset_dict_flag()
+        dictAdd(bot, update)
+    else:
+        query.edit_message_text(text="Error")
+
+def genSubscriptionsMessage(username):
+    subs = db.get_subscriptions(username)
+    msgs = ["You have subscribed to:"]
+    msgs += ["🗞️ " + news_name for news_name in subs]
+    msgs += [article_lunch]
+    return "\n".join(msgs)
+
+
+
+def subscriptionsList(bot, update):
+    """ List user subscription """
+    username = update.effective_user.username
+    msg = genSubscriptionsMessage(username)
+    print("subs list", msg)
+    update.message.reply_text(msg)
+
+def articleSuggestion(bot, update):
+    username = update.effective_user.username
+    title, link = article.random_from_subscribed(db, username, )
+    msg = "📰 {}\n🔗 {}".format(title, link)
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton("✔️ Read, add words", callback_data=-3)]
+    ])
+    update.message.reply_text(msg, reply_markup=reply_markup)
 
 # Define a few command handlers. These usually take the two arguments bot and
 # update. Error handlers also receive the raised TelegramError object in error.
 def start(bot, update):
     """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
-
+    update.message.reply_text('Hi, I’m your new British friend and I would love to share my favorite articles with you. Here is a couple of media I find interesting. Tell me which one you would like to subscribe to and I will send you the latest articles daily.')
+    articleSelection(bot, update)
 
 def help(bot, update):
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
-
 
 def dictAdd(bot, update):
     """"Prompts the user to add words to their dictionary when the command /dictAdd is issued"""
@@ -161,66 +228,16 @@ def echo(bot, update):
         return
 
 
+
 def error(bot, update, error):
     """Log Errors caused by Updates."""
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
-def articleSelection(bot, update):
-    sources = article.sources
-    keyboard = [
-        [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
-        for id, news_name in enumerate(sources.keys())
-    ]
-    keyboard.append([
-        InlineKeyboardButton("👀 List", callback_data="-2"),
-        InlineKeyboardButton("👌 All set", callback_data="-1")
-    ])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
-
-
-def articleCallback(bot, update):
-    sources = article.sources
-    query = update.callback_query
-    source_number = int(query.data)
-    print(query.data)
-    t = "Callback: {}".format(source_number)
-    print(t)
-    if (source_number >= 0):
-        news_source_name = list(sources.keys())[source_number]
-        username = update.effective_user.username
-        db.add_subscription(username, news_source_name)
-        query.answer("You have subscribed to 🗞 {}".format(news_source_name))
-    elif source_number == -1:
-        query.edit_message_text(text="You will get your articles for lunch 🍽️. See you soon!")
-    elif source_number == -2:
-        # TODO List sources subscribed to
-        query.edit_message_text(text="List")
-    else:
-        query.edit_message_text(text="Error")
-
-
-def subscriptionsList(bot, update):
-    """ List user subscription """
-    username = update.effective_user.username
-    subs = db.get_subscriptions(username)
-    sources = article.sources
-    keyboard = [
-        [InlineKeyboardButton("🗞️ " + news_name, callback_data=id)]
-        for id, news_name in enumerate(subs)
-    ]
-    keyboard.append([
-        InlineKeyboardButton("👌 All set", callback_data="-1")
-    ])
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text('Please choose:', reply_markup=reply_markup)
-
-
 def main():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater("734595784:AAGLpr67me5zDP-wObrh3NY-KIA0JIXcKvA")
+    updater = Updater("778329810:AAElGVRiP4_tZCJvAE025qZ1ySTgBOAze80")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -233,8 +250,8 @@ def main():
     dp.add_handler(CommandHandler("dictCancel", dictCancel))
     dp.add_handler(CommandHandler("dictScore", dictScore))
     dp.add_handler(CommandHandler("select", articleSelection))
-    dp.add_handler(CommandHandler("listSub", subscriptionsList))
-    # dp.add_handler(CommandHandler("suggest", articleSuggestion))
+    dp.add_handler(CommandHandler("list", subscriptionsList))
+    dp.add_handler(CommandHandler("suggest", articleSuggestion))
     dp.add_handler(CallbackQueryHandler(articleCallback))
 
     # on noncommand i.e message - echo the message on Telegram
@@ -253,4 +270,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+		main()

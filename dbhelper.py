@@ -67,6 +67,14 @@ class DBHelper:
         self.conn.execute(stmt, args)
         self.conn.commit()
 
+    def has_subscription(self, user_name, news_source):
+        """ Has user a subscription to a given news_source ? """
+        stmt = "SELECT EXISTS(SELECT * FROM subscriptions WHERE user_name = (?) AND news_source = (?))"
+        args = (user_name, news_source)
+        r = self.conn.execute(stmt, args)
+        return next(r)[0] == 1
+
+
     def get_subscriptions(self, user_name):
         """ Gives an array of news_source """
         stmt = "SELECT news_source FROM subscriptions"
