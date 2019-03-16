@@ -100,9 +100,14 @@ def articleCallback(bot, update):
     elif source_number == -100:
         global score
         score += 1
-        query.edit_message_text(text='You got it right!')
+        query.answer('You got it right!')
+        dictTest2(bot, update)
     elif source_number == -101:
-        query.edit_message_text(text='Wrong!')
+        query.answer('Wrong!')
+        dictTest2(bot, update)
+    elif source_number == -102:
+        reset_dict_flags()
+        mainMenu(bot, update)
 
     # menu
     elif source_number == -1000: #articles
@@ -161,11 +166,15 @@ def help(bot, update):
 
 def dictAdd(bot, update):
     """"Prompts the user to add words to their dictionary when the command /dictAdd is issued"""
+    keyboard = [[InlineKeyboardButton("return to main menu", callback_data="-102")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        update.message.reply_text('Please enter the english word, type \"/dictCancel\" to cancel')
+        update.message.reply_text('Please enter the english word',
+                                  reply_markup=reply_markup)
     else:
         query = update.callback_query
-        query.edit_message_text('Please enter the english word, type \"/dictCancel\" to cancel')
+        query.edit_message_text('Please enter the english word',
+                                reply_markup=reply_markup)
     global requesting_english
     requesting_english = True
 
@@ -180,6 +189,7 @@ def dictAll(bot, update):
 def dictCancel(bot, update):
     """Resets all flags and values for the dictionnary"""
     reset_dict_flags()
+    mainMenu(bot, update)
 
 
 def dictTest(bot, update):
@@ -188,24 +198,31 @@ def dictTest(bot, update):
     r = randint(1, entry_count)
     [french, english] = db.get_dict_entry(r)
     r = randint(0, 1)
+
+    keyboard = [[InlineKeyboardButton("return to main menu", callback_data="-102")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     if r == 0:
         if update.message:
-            update.message.reply_text('Translate ' + english + ' in french, type \"/dictCancel\" to cancel')
+            update.message.reply_text('Translate ' + english + ' in french 🇫🇷',
+                                      reply_markup=reply_markup)
         else:
             query = update.callback_query
             query.edit_message_text(
-                text='Translate ' + english + ' in french, type \"/dictCancel\" to cancel')
+                text='Translate ' + english + ' in french',
+                reply_markup=reply_markup)
         global testing_french
         testing_french = True
         global english_value
         english_value = english
     else:
         if update.message:
-            update.message.reply_text('Translate ' + french + ' in english, type \"/dictCancel\" to cancel')
+            update.message.reply_text('Translate ' + french + ' in english',
+                                      reply_markup=reply_markup)
         else:
             query = update.callback_query
             query.edit_message_text(
-                text='Translate ' + french + ' in english, type \"/dictCancel\" to cancel')
+                text='Translate ' + french + ' in english 🇬🇧',
+                reply_markup=reply_markup)
         global testing_english
         testing_english = True
         global french_value
@@ -236,7 +253,7 @@ def dictTest2(bot, update):
             InlineKeyboardButton(french2, callback_data="-101"),
             InlineKeyboardButton(french3, callback_data="-101")
         ])
-        translate_to = "english 🇬🇧"  # 🇺🇸
+        translate_to = "french 🇫🇷"
         translating = english
     else:
         keyboard.append([
@@ -244,12 +261,15 @@ def dictTest2(bot, update):
             InlineKeyboardButton(english2, callback_data="-101"),
             InlineKeyboardButton(english3, callback_data="-101")
         ])
-        translate_to = "french 🇫🇷"
+        translate_to = "english 🇬🇧"  # 🇺🇸
         translating = french
-    shuffle(keyboard)
+    shuffle(keyboard[0])
+    keyboard.append([InlineKeyboardButton("return to main menu", callback_data="-102")])
     reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        update.message.reply_text("click on the correct " + translate_to + " translation for the word \"" + translating+"\"", reply_markup=reply_markup)
+        update.message.reply_text(
+            "click on the correct " + translate_to + " translation for the word \"" + translating+"\"",
+            reply_markup=reply_markup)
     else:
         query = update.callback_query
         query.edit_message_text(
@@ -261,18 +281,25 @@ def dictScore(bot, update):
     """Returns user score"""
     global score
 
+    keyboard = [[InlineKeyboardButton("return to main menu", callback_data="-102")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     if update.message:
         update.message.reply_text('You scored ' + str(score) + ' point(s)')
         if score < 10:
-            update.message.reply_text('Try to go for 10 points today!')
+            update.message.reply_text('Try to go for 10 points today!',
+                                      reply_markup = reply_markup)
         else:
-            update.message.reply_text('Good job!  💯')
+            update.message.reply_text('Good job!  💯',
+                                      reply_markup=reply_markup)
     else:
         query = update.callback_query
         if score < 10:
-            query.edit_message_text(text='You scored ' + str(score) + ' point(s) \n Try to go for 10 points today!')
+            query.edit_message_text(text='You scored ' + str(score) + ' point(s) \n Try to go for 10 points today!',
+                                    reply_markup=reply_markup)
         else:
-            query.edit_message_text(text='You scored ' + str(score) + ' point(s) \n Good job!  💯')
+            query.edit_message_text(text='You scored ' + str(score) + ' point(s) \n Good job!  💯',
+                                    reply_markup=reply_markup)
 
 
 def echo(bot, update):
@@ -285,43 +312,55 @@ def echo(bot, update):
     global french_value
     global score
 
+    keyboard = [[InlineKeyboardButton("return to main menu", callback_data="-102")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     if (requesting_english == True):
         english_value = update.message.text
-        update.message.reply_text('You typed: ' + english_value)
-        update.message.reply_text('Please enter the french translation')
+        #update.message.reply_text('You typed: ' + english_value)
+        update.message.reply_text('Please enter the french translation',
+                                  reply_markup=reply_markup)
         requesting_english = False
         requesting_french = True
         return
 
     if (requesting_french == True):
         french_value = update.message.text
-        update.message.reply_text('You typed: ' + french_value)
+        #update.message.reply_text('You typed: ' + french_value)
         db.add_item(french_value, english_value)
-        update.message.reply_text('Entry has been added to database')
+        update.message.reply_text('All done! 🎓',
+                                  reply_markup=reply_markup)
         reset_dict_flags()
         return
 
     if (testing_english == True):
         english_value = update.message.text
-        update.message.reply_text('You typed: ' + english_value)
+        #update.message.reply_text('You typed: ' + english_value)
         if (english_value in db.get_english(french_value)):
             update.message.reply_text('Correct!')
             score += 3
         else:
             update.message.reply_text('Wrong!')
         reset_dict_flags()
+        dictTest(bot, update)
         return
 
     if (testing_french == True):
         french_value = update.message.text
-        update.message.reply_text('You typed: ' + french_value)
+        #update.message.reply_text('You typed: ' + french_value)
         if (french_value in db.get_french(english_value)):
             update.message.reply_text('Correct!')
             score += 3
         else:
             update.message.reply_text('Wrong!')
             reset_dict_flags()
+        reset_dict_flags()
+        dictTest(bot, update)
         return
+
+    mainMenu(bot, update)
+
+
 
 
 def mainMenu(bot, update):
@@ -334,9 +373,14 @@ def mainMenu(bot, update):
         [InlineKeyboardButton("See your score", callback_data="-1004")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    update.message.reply_text(
-        "Select an option to launch the associated command",
-        reply_markup=reply_markup)
+    if update.message:
+        update.message.reply_text(
+            "What would you like to do next ? 🤔",
+            reply_markup=reply_markup)
+    else:
+        query = update.callback_query
+        query.edit_message_text(text="What would you like to do next ? 🤔",
+                                reply_markup=reply_markup)
 
 
 def error(bot, update, error):
