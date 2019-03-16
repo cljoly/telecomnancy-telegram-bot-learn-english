@@ -253,7 +253,7 @@ def dictTest2(bot, update):
             InlineKeyboardButton(french2, callback_data="-101"),
             InlineKeyboardButton(french3, callback_data="-101")
         ])
-        translate_to = "french 🇫🇷"
+        translate_to = "French 🇫🇷"
         translating = english
     else:
         keyboard.append([
@@ -261,7 +261,7 @@ def dictTest2(bot, update):
             InlineKeyboardButton(english2, callback_data="-101"),
             InlineKeyboardButton(english3, callback_data="-101")
         ])
-        translate_to = "english 🇬🇧"  # 🇺🇸
+        translate_to = "English 🇬🇧"  # 🇺🇸
         translating = french
     shuffle(keyboard[0])
     keyboard.append([InlineKeyboardButton("return to main menu", callback_data="-102")])
@@ -318,7 +318,7 @@ def echo(bot, update):
     if (requesting_english == True):
         english_value = update.message.text
         #update.message.reply_text('You typed: ' + english_value)
-        update.message.reply_text('Please enter the french translation',
+        update.message.reply_text('Please enter the French translation',
                                   reply_markup=reply_markup)
         requesting_english = False
         requesting_french = True
