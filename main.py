@@ -118,7 +118,7 @@ def subscriptionsList(bot, update):
 def articleSuggestion(bot, update):
     username = update.effective_user.username
     title, link = article.random_from_subscribed(db, username, )
-    msg = "📰 {}\n🔗 {}".format(title, link)
+    msg = "Here is an article I found interesting ✨. Have a look!\n 📰 {}\n🔗 {}".format(title, link)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton("✔️ Read, add words", callback_data=-3)]
     ])
