@@ -169,11 +169,11 @@ def dictAdd(bot, update):
     keyboard = [[InlineKeyboardButton("return to main menu", callback_data="-102")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     if update.message:
-        update.message.reply_text('Please enter the english word',
+        update.message.reply_text('Please enter the English word',
                                   reply_markup=reply_markup)
     else:
         query = update.callback_query
-        query.edit_message_text('Please enter the english word',
+        query.edit_message_text('Please enter the English word',
                                 reply_markup=reply_markup)
     global requesting_english
     requesting_english = True
