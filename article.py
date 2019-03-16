@@ -7,7 +7,7 @@ import feedparser as fd
 from random import randint
 
 # Sources of news (mainly world news, could be insterresting for anyone)
-sources = {'The Economist - World News': 'https://www.economist.com/rss',
+sources = {'The Economist - International': 'https://www.economist.com/international/rss.xml',
            'The Guardian - International':
            'https://www.theguardian.com/international/rss',
            'The Independant - World':
@@ -38,10 +38,13 @@ def getFeed(sourceName):
 def random_from_subscribed(db, user):
     subs = db.get_subscriptions(user)
     while True:
-        feed = getFeed(subs[randint(0, len(subs)-1)])
+        sub = subs[randint(0, len(subs)-1)]
+        print(sub)
+        feed = getFeed(sub)
         for r in getTitleUrl(feed):
-            print("Got random: ", r)
-            return r
+            if randint(0, 10) == 1:
+                print("Got random: ", r)
+                return r
 
 def toggle_subscription(db, user, sourceName):
     """ Subcribe or unscribe user to given news source. Return True if
