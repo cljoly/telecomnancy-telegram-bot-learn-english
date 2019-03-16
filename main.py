@@ -328,9 +328,9 @@ def echo(bot, update):
         french_value = update.message.text
         #update.message.reply_text('You typed: ' + french_value)
         db.add_item(french_value, english_value)
-        update.message.reply_text('All done! 🎓',
-                                  reply_markup=reply_markup)
+        update.message.reply_text('All done! 🎓 Add another one ?')
         reset_dict_flags()
+        dictAdd(bot,update)
         return
 
     if (testing_english == True):
