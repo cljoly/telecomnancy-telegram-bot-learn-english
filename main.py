@@ -93,7 +93,8 @@ def articleCallback(bot, update):
     elif source_number == -2: # List subscription
         query.edit_message_text(text=genSubscriptionsMessage(username))
     elif source_number == -3: # Article read, add word
-        reset_dict_flags()
+        # TODO Call function to add words
+        #reset_dict_flag()
         dictAdd(bot, update)
     else:
         query.edit_message_text(text="Error")
@@ -236,8 +237,7 @@ def error(bot, update, error):
 def main():
     """Start the bot."""
     # Create the EventHandler and pass it your bot's token.
-    token = os.getenv("TOKEN", default="778329810:AAElGVRiP4_tZCJvAE025qZ1ySTgBOAze80")
-    updater = Updater(token)
+    updater = Updater("778329810:AAElGVRiP4_tZCJvAE025qZ1ySTgBOAze80")
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
