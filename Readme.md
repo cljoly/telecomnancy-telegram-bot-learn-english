@@ -1,6 +1,6 @@
 # Telegram Bot for English Project
 
-## Install the lib
+## Install the lib
  
 We are using https://python-telegram-bot.org/
 
